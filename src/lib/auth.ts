@@ -8,3 +8,4 @@ export async function auth() {
 
 // Exporte authOptions separadamente se necessário em outros lugares
 export { authOptions }
+

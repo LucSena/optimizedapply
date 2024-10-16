@@ -21,7 +21,14 @@ import {
 import { CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
-const PricingCard = ({ title, price, description, features, buttonText, isPro = false }) => (
+const PricingCard = ({ title, price, description, features, buttonText, isPro = false }: { 
+    title: any, 
+    price: any, 
+    description: any, 
+    features: any[], 
+    buttonText: any, 
+    isPro?: any 
+}) => (
   <Card className={`w-full max-w-sm mx-auto ${isPro ? 'border-primary' : ''}`}>
     <CardHeader>
       <CardTitle className="text-2xl font-bold">{title}</CardTitle>
