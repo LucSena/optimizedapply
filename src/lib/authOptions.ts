@@ -50,6 +50,44 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: profile?.email ?? '' },
+        })
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: profile?.email ?? '',
+              name: profile?.name,
+            },
+          })
+        }
+      }
+      return true
+    },
+    async redirect({ url, baseUrl }) {
+      return url.startsWith(baseUrl) ? url : baseUrl + '/dashboard'
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub as string;
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { accountType: true }
+        });
+        session.user.accountType = dbUser?.accountType || 'FREE';
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    }
+  },
   session: {
     strategy: "jwt"
   },

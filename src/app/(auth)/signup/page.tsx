@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { FcGoogle } from 'react-icons/fc'
+import { useRedirectAuth } from '@/hooks/useRedirectAuth'
 
 export default function SignUp() {
   const [name, setName] = useState('')
@@ -18,6 +19,15 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const { status } = useRedirectAuth()
+
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  if (status === 'authenticated') {
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,33 +38,30 @@ export default function SignUp() {
       return
     }
 
-    // Here you would typically make an API call to your backend to create the user
-    // For this example, we'll just simulate a successful signup
     try {
-      // Simulated API call
-      // const response = await fetch('/api/signup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ name, email, password }),
-      // })
-      // if (response.ok) {
-      //   const result = await signIn('credentials', {
-      //     redirect: false,
-      //     email,
-      //     password,
-      //   })
-      //   if (result?.error) {
-      //     setError('Failed to sign in after registration')
-      //   } else {
-      //     router.push('/dashboard')
-      //   }
-      // } else {
-      //   setError('Failed to create account')
-      // }
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      })
 
-      // Simulated successful signup
-      console.log('User registered:', { name, email })
-      router.push('/signin')
+      if (response.ok) {
+        // Signup successful, now sign in
+        const result = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        })
+
+        if (result?.error) {
+          setError('Failed to sign in after registration')
+        } else {
+          router.push('/dashboard')
+        }
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to create account')
+      }
     } catch (err) {
       setError('An error occurred during registration')
     }

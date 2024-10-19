@@ -10,12 +10,22 @@ import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { FcGoogle } from 'react-icons/fc'
+import { useRedirectAuth } from '@/hooks/useRedirectAuth'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
+  const { status } = useRedirectAuth()
+
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  if (status === 'authenticated') {
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,7 +46,7 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signIn('google', { callbackUrl: '/dashboard', popup: true })
+      await signIn('google', { callbackUrl: '/dashboard' })
     } catch (error) {
       console.error('Failed to sign in with Google', error)
       setError('Failed to sign in with Google. Please try again.')
