@@ -1,12 +1,26 @@
+'use client'
+
 import React from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Menu } from 'lucide-react'
+import { Menu, User } from 'lucide-react'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const NavItems = () => (
   <>
@@ -23,6 +37,27 @@ const NavItems = () => (
 )
 
 const Navbar = () => {
+  const { data: session, status } = useSession()
+
+  const UserMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Avatar className="cursor-pointer">
+          <AvatarImage src={session?.user?.image || ''} />
+          <AvatarFallback>{session?.user?.name?.[0] || <User />}</AvatarFallback>
+        </Avatar>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>
+          <Link href="/account">Account</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Link href="/api/auth/signout">Sign Out</Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,9 +71,13 @@ const Navbar = () => {
             <NavItems />
           </nav>
           <div className="flex items-center space-x-4">
-            <Button variant="default" asChild className="hidden md:inline-flex">
-              <Link href="/signin">Sign In</Link>
-            </Button>
+            {status === 'authenticated' ? (
+              <UserMenu />
+            ) : (
+              <Button variant="default" asChild className="hidden md:inline-flex">
+                <Link href="/signin">Sign In</Link>
+              </Button>
+            )}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="md:hidden">
@@ -49,9 +88,20 @@ const Navbar = () => {
               <SheetContent side="right">
                 <nav className="flex flex-col space-y-4 mt-6">
                   <NavItems />
-                  <Button variant="default" asChild>
-                    <Link href="/signin">Sign In</Link>
-                  </Button>
+                  {status === 'authenticated' ? (
+                    <>
+                      <Link href="/account" className="text-sm font-medium transition-colors hover:text-primary">
+                        Account
+                      </Link>
+                      <Link href="/api/auth/signout" className="text-sm font-medium transition-colors hover:text-primary">
+                        Sign Out
+                      </Link>
+                    </>
+                  ) : (
+                    <Button variant="default" asChild>
+                      <Link href="/signin">Sign In</Link>
+                    </Button>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
