@@ -1,9 +1,10 @@
-// src/components/resume/TemplateSelector.tsx
 import React from 'react';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { torontoConfig } from '../resume-templates/configs/toronto';
+import TorontoTemplate from '../resume-templates/toronto';
+import { previewData } from './template-preview-data';
 
 // Tipos
 interface TemplateSelectorProps {
@@ -37,28 +38,37 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 isSelected ? 'border-primary ring-2 ring-primary' : ''
               }`}
             >
-              {/* Indicador de selecionado */}
               {isSelected && (
                 <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
                   <Check className="h-4 w-4 text-white" />
                 </div>
               )}
 
-              <CardContent className="pt-6">
-                {/* Preview do template (usando uma versão em miniatura do próprio template) */}
-                <div className="aspect-[1/1.4] bg-accent rounded-lg mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    {template.name} Preview
-                  </div>
+                <CardContent className="pt-6">
+                {/* Preview do template com dados reais */}
+                <div className="aspect-[1/1.4] bg-white rounded-lg mb-4 overflow-hidden shadow-md relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div
+                    className="w-full transform scale-[0.47] md:scale-[0.37] origin-left"
+                    >
+                    {template.id === 'toronto' && (
+                        <TorontoTemplate
+                        data={previewData}
+                        variant="preview"
+                        />
+                    )}
+                    </div>
+                </div>
                 </div>
 
+
                 <div className="space-y-1">
-                  <h3 className="font-semibold text-lg">{template.name}</h3>
-                  <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold text-lg">{template.name}</h3>
+                    <p className="text-sm text-muted-foreground">
                     {template.description}
-                  </p>
+                    </p>
                 </div>
-              </CardContent>
+                </CardContent>
 
               <CardFooter className="pt-0">
                 <Button
