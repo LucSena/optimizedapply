@@ -58,6 +58,7 @@ model Resume {
   id               String   @id @default(cuid())
   userId           String
   title            String
+  templateId       String   // Novo campo para identificar qual template está sendo usado
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
