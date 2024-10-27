@@ -1,9 +1,13 @@
-import { Providers } from '../providers'
+import { ResumeCreationProvider } from '@/contexts/ResumeCreationContext';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <Providers>
+    <ResumeCreationProvider>
       {children}
-    </Providers>
-  )
+    </ResumeCreationProvider>
+  );
 }

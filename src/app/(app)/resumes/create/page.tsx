@@ -1,25 +1,35 @@
 // src/app/(app)/resumes/create/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import TemplateSelector from '@/components/resume/TemplateSelector';
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import { useResumeCreation } from '@/contexts/ResumeCreationContext';
 
 export default function CreateResumePage() {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const router = useRouter();
+  const { state, dispatch } = useResumeCreation();
   
   // Exemplo - Na implementação real virá do contexto de autenticação
   const userType: 'FREE' | 'PREMIUM' = 'FREE';
 
+  // Se já tiver começado a criar o currículo, redireciona para a etapa correta
+  useEffect(() => {
+    if (state.step > 1) {
+      router.push(`/resumes/create/form`);
+    }
+  }, [state.step, router]);
+
   const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
+    dispatch({ type: 'SET_TEMPLATE', payload: templateId });
   };
 
   const handleNext = () => {
-    if (!selectedTemplate) return;
-    // Aqui vamos implementar a navegação para o próximo passo
-    // (formulário de preenchimento do currículo)
+    if (!state.templateId) return;
+    dispatch({ type: 'NEXT_STEP' });
+    router.push('/resumes/create/form');
   };
 
   return (
@@ -31,7 +41,7 @@ export default function CreateResumePage() {
         </p>
 
         <TemplateSelector
-          selectedTemplate={selectedTemplate}
+          selectedTemplate={state.templateId}
           onSelect={handleTemplateSelect}
           userType={userType}
         />
@@ -39,7 +49,7 @@ export default function CreateResumePage() {
         <div className="mt-8 flex justify-end">
           <Button
             size="lg"
-            disabled={!selectedTemplate}
+            disabled={!state.templateId}
             onClick={handleNext}
           >
             Continue
