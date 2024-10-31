@@ -25,7 +25,8 @@ const languagesSchema = z.object({
   languages: z.array(z.object({
     name: z.string().min(2, 'Language name is required'),
     level: z.enum(languageLevels),
-  })).min(1, 'Add at least one language'),
+  }))
+  // Removido o .min(1) para tornar opcional
 });
 
 type LanguagesFormData = z.infer<typeof languagesSchema>;
@@ -36,9 +37,7 @@ export default function LanguagesForm() {
   const form = useForm<LanguagesFormData>({
     resolver: zodResolver(languagesSchema),
     defaultValues: {
-      languages: state.formData.languages.length > 0
-        ? state.formData.languages
-        : [{ name: '', level: 'INTERMEDIATE' }],
+      languages: state.formData.languages || [], // Modificado aqui
     },
   });
 
@@ -77,6 +76,11 @@ export default function LanguagesForm() {
       </div>
 
       <form className="space-y-4">
+        {fields.length === 0 && (
+          <div className="text-center py-8 bg-muted/50 rounded-lg">
+            <p className="text-muted-foreground">No items added yet. Click the button below to add one.</p>
+          </div>
+        )}
         {fields.map((field, index) => (
           <Card key={field.id}>
             <CardContent className="pt-6">

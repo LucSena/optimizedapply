@@ -8,20 +8,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useResumeCreation } from '@/contexts/ResumeCreationContext';
 import React from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const personalInfoSchema = z.object({
+  // Mantemos apenas nome e email como obrigatórios
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  // Todos os outros campos são opcionais
   phone: z.string().optional(),
   address: z.string().optional(),
-  linkedin: z.string().url('Invalid LinkedIn URL').optional(),
-  website: z.string().url('Invalid website URL').optional(),
+  linkedin: z.string().url('Invalid LinkedIn URL').optional().or(z.literal('')),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
 });
 
 type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;
 
 export default function PersonalInfoForm() {
   const { state, dispatch } = useResumeCreation();
+  const [showValidationAlert, setShowValidationAlert] = React.useState(false);
 
   const form = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
@@ -36,18 +41,31 @@ export default function PersonalInfoForm() {
   });
 
   const onSubmit = (data: PersonalInfoFormData) => {
-    dispatch({
-      type: 'UPDATE_FORM_DATA',
-      payload: {
-        personalInfo: data,
-      },
-    });
+    // Validar apenas os campos obrigatórios
+    if (data.fullName && data.email) {
+      setShowValidationAlert(false);
+      dispatch({
+        type: 'UPDATE_FORM_DATA',
+        payload: {
+          personalInfo: {
+            ...data,
+            // Converter strings vazias para undefined
+            linkedin: data.linkedin || undefined,
+            website: data.website || undefined,
+          },
+        },
+      });
+    } else {
+      setShowValidationAlert(true);
+    }
   };
 
   // Auto-save on form change
   React.useEffect(() => {
     const subscription = form.watch((value) => {
-      onSubmit(value as PersonalInfoFormData);
+      if (value.fullName && value.email) {
+        onSubmit(value as PersonalInfoFormData);
+      }
     });
     return () => subscription.unsubscribe();
   }, [form.watch]);
@@ -57,9 +75,18 @@ export default function PersonalInfoForm() {
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Personal Information</h2>
         <p className="text-muted-foreground">
-          Add your personal details to help employers contact you.
+          Add your personal details to help employers contact you. Name and email are required.
         </p>
       </div>
+
+      {showValidationAlert && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please provide your full name and email address to continue.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <form className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
@@ -92,8 +119,9 @@ export default function PersonalInfoForm() {
             )}
           </div>
 
+          {/* Campos opcionais */}
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Phone (Optional)</Label>
             <Input
               id="phone"
               {...form.register('phone')}
@@ -102,7 +130,7 @@ export default function PersonalInfoForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">Address (Optional)</Label>
             <Input
               id="address"
               {...form.register('address')}
@@ -111,7 +139,7 @@ export default function PersonalInfoForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn Profile</Label>
+            <Label htmlFor="linkedin">LinkedIn Profile (Optional)</Label>
             <Input
               id="linkedin"
               {...form.register('linkedin')}
@@ -125,7 +153,7 @@ export default function PersonalInfoForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">Website (Optional)</Label>
             <Input
               id="website"
               {...form.register('website')}

@@ -5,10 +5,10 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useResumeCreation } from '@/contexts/ResumeCreationContext';
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { Steps } from "@/components/ui/steps";
+import { useToast } from "@/hooks/use-toast"
 
-// Importar os componentes de cada etapa que vamos criar
 import PersonalInfoForm from '@/components/resume/form-steps/PersonalInfoForm';
 import ProfessionalSummaryForm from '@/components/resume/form-steps/ProfessionalSummaryForm';
 import WorkExperienceForm from '@/components/resume/form-steps/WorkExperienceForm';
@@ -33,16 +33,15 @@ const steps = [
 
 export default function ResumeFormPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { state, dispatch } = useResumeCreation();
 
-  // Se não tiver template selecionado, volta para a seleção
   useEffect(() => {
     if (!state.templateId) {
       router.push('/resumes/create');
     }
   }, [state.templateId, router]);
 
-  // Garantir que sempre começa no primeiro step ao entrar na página
   useEffect(() => {
     if (state.step !== 1) {
       dispatch({ type: 'SET_STEP', payload: 1 });
@@ -50,6 +49,100 @@ export default function ResumeFormPage() {
   }, []);
 
   const handleNext = () => {
+    // Validar apenas os passos obrigatórios (1 a 5)
+    if (state.step >= 1 && state.step <= 5) {
+      const { personalInfo, professionalSummary, workExperiences, educations, skills } = state.formData;
+
+      switch (state.step) {
+        case 1:
+          if (!personalInfo?.fullName || !personalInfo?.email) {
+            toast({
+              variant: "destructive",
+              title: "Required Fields Missing",
+              description: (
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  <span>Please provide your full name and email address to continue.</span>
+                </div>
+              ),
+              className: "border-destructive",
+              duration: 5000, // 5 segundos
+            });
+            return;
+          }
+          break;
+        case 2:
+          if (!professionalSummary?.summary) {
+            toast({
+              variant: "destructive",
+              title: "Professional Summary Required",
+              description: (
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  <span>Please provide a professional summary to continue.</span>
+                </div>
+              ),
+              className: "border-destructive",
+              duration: 5000,
+            });
+            return;
+          }
+          break;
+        case 3:
+          if (!workExperiences || workExperiences.length === 0) {
+            toast({
+              variant: "destructive",
+              title: "Work Experience Required",
+              description: (
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  <span>Please add at least one work experience entry to continue.</span>
+                </div>
+              ),
+              className: "border-destructive",
+              duration: 5000,
+            });
+            return;
+          }
+          break;
+        case 4:
+          if (!educations || educations.length === 0) {
+            toast({
+              variant: "destructive",
+              title: "Education Required",
+              description: (
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  <span>Please add at least one education entry to continue.</span>
+                </div>
+              ),
+              className: "border-destructive",
+              duration: 5000,
+            });
+            return;
+          }
+          break;
+        case 5:
+          if (!skills || skills.length === 0) {
+            toast({
+              variant: "destructive",
+              title: "Skills Required",
+              description: (
+                <div className="flex gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                  <span>Please add at least one skill to continue.</span>
+                </div>
+              ),
+              className: "border-destructive",
+              duration: 5000,
+            });
+            return;
+          }
+          break;
+      }
+    }
+
+    // Se chegou aqui, pode avançar
     if (state.step < steps.length) {
       dispatch({ type: 'NEXT_STEP' });
     }
@@ -64,7 +157,6 @@ export default function ResumeFormPage() {
   };
 
   const handleFinish = () => {
-    // Implementar a lógica de finalização e salvamento
     router.push('/resumes');
   };
 

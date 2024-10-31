@@ -18,7 +18,8 @@ const projectsSchema = z.object({
     name: z.string().min(2, 'Project name is required'),
     description: z.string().min(20, 'Description must be at least 20 characters'),
     url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  })).min(1, 'Add at least one project'),
+  }))
+  // Removido o .min(1) para tornar opcional
 });
 
 type ProjectsFormData = z.infer<typeof projectsSchema>;
@@ -29,9 +30,7 @@ export default function ProjectsForm() {
   const form = useForm<ProjectsFormData>({
     resolver: zodResolver(projectsSchema),
     defaultValues: {
-      projects: state.formData.projects.length > 0
-        ? state.formData.projects
-        : [{ name: '', description: '', url: '' }],
+      projects: state.formData.projects || [], // Modificado aqui
     },
   });
 
@@ -75,6 +74,11 @@ export default function ProjectsForm() {
       </div>
 
       <form className="space-y-4">
+      {fields.length === 0 && (
+          <div className="text-center py-8 bg-muted/50 rounded-lg">
+            <p className="text-muted-foreground">No items added yet. Click the button below to add one.</p>
+          </div>
+        )}
         {fields.map((field, index) => (
           <Card key={field.id}>
             <CardContent className="pt-6">

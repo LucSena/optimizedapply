@@ -17,7 +17,8 @@ const certificationsSchema = z.object({
     name: z.string().min(2, 'Certification name is required'),
     issuer: z.string().min(2, 'Issuer is required'),
     date: z.string().min(1, 'Date is required'),
-  })).min(1, 'Add at least one certification'),
+  }))
+  // Removido o .min(1) para tornar opcional
 });
 
 type CertificationsFormData = z.infer<typeof certificationsSchema>;
@@ -28,12 +29,10 @@ export default function CertificationsForm() {
   const form = useForm<CertificationsFormData>({
     resolver: zodResolver(certificationsSchema),
     defaultValues: {
-      certifications: state.formData.certifications.length > 0
-        ? state.formData.certifications.map(cert => ({
-            ...cert,
-            date: cert.date.toISOString().split('T')[0],
-          }))
-        : [{ name: '', issuer: '', date: '' }],
+      certifications: state.formData.certifications.map(cert => ({
+        ...cert,
+        date: cert.date.toISOString(), // Convert Date to string
+      })) || [],
     },
   });
 
@@ -77,6 +76,11 @@ export default function CertificationsForm() {
       </div>
 
       <form className="space-y-4">
+        {fields.length === 0 && (
+          <div className="text-center py-8 bg-muted/50 rounded-lg">
+            <p className="text-muted-foreground">No items added yet. Click the button below to add one.</p>
+          </div>
+        )}
         {fields.map((field, index) => (
           <Card key={field.id}>
             <CardContent className="pt-6">
